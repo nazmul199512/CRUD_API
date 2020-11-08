@@ -16,6 +16,12 @@ from .models import Article
 from .serializers import ArticleSerializer
 
 
+class ArticleGenericViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,
+                            mixins.UpdateModelMixin, mixins.RetrieveModelMixin):
+    serializer_class = ArticleSerializer
+    queryset = Article.objects.all()
+
+
 class ArticleViewSet(viewsets.ViewSet):
 
     def list(self, request):
@@ -35,6 +41,14 @@ class ArticleViewSet(viewsets.ViewSet):
         article = get_object_or_404(queryset, pk=pk)
         serializer = ArticleSerializer(article)
         return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        article = Article.objects.get(pk=pk)
+        serializer = ArticleSerializer(article, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GenericAPIView(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin,
